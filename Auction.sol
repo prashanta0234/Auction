@@ -8,12 +8,22 @@ contract Auction{
     address public heightBider;
     uint public heightBid;
     address payable public owner;
+    bool public isEnd;
+    uint public numberOfBiders;
 
     struct Bidtype{
         uint amount;
         bool isBid;
+        
+    }
+    struct storeBiders{
+        uint amount;
+        address payable bider;
+        bool winner;
+
     }
     mapping(address=>Bidtype) public bids;
+    mapping(uint=>storeBiders) public biddres;
     constructor(uint EndingTime,uint MinumumBid,address _owner){
         manager=payable(msg.sender);
         endingTime=block.timestamp+EndingTime;
@@ -25,20 +35,36 @@ contract Auction{
         require(msg.sender==manager,"Sorry you are not the manager.");
         _;
     }
-    function bid() public payable {
+    modifier running{
+        require(block.timestamp<endingTime,"Auction is end!");
+        require(isEnd==false);
+        _;
+    }
+    function bid() public payable running {
         require(msg.sender != manager,"Sorry manager not allowed for biding");
         require(bids[msg.sender].isBid==true||minimumBid <= msg.value,"Please Send minimum value");
         require(bids[msg.sender].amount+msg.value> heightBid,"Please Bid more.");      
-        bids[msg.sender].isBid=true;
-        uint temp =bids[msg.sender].amount +=msg.value;       
+        storeBiders storage bidresInfo=biddres[numberOfBiders];
+        bidresInfo.amount+=msg.value;
+        bidresInfo.bider=payable(msg.sender);
+        
+        
+       uint temp =bids[msg.sender].amount +=msg.value;       
         if(heightBid<temp){
             heightBid=temp;
             heightBider=msg.sender;
         }
+        if(bids[msg.sender].isBid==false){
+            numberOfBiders++;
+        }
+        bids[msg.sender].isBid=true;
+        
        
     }
-    function end() public{
-        
+    function end() public isManger{
+        isEnd=true;
+
+
     }
     
 }
