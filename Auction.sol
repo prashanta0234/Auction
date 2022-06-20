@@ -35,6 +35,8 @@ contract Auction{
         require(isEnd==false);
         _;
     }
+
+    
     modifier isbider{
         require(bids[msg.sender].isBid==true);
         _;
